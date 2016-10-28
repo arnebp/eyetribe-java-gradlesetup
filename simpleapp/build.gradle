@@ -1,0 +1,47 @@
+apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'findbugs'
+
+group 'eyetribe-gradle-setup'
+version '1.0'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.google.guava:guava:19.0'
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'com.theeyetribe:eyetribe-java:0.9.77'
+}
+
+jar {
+    archivesBaseName = 'EyeTribeTestSetup'
+
+    //we include everything from 'libs' folder
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.theeyetribe.testsetup.Launcher'
+        )
+    }
+}
+
+findbugs {
+    ignoreFailures = true
+    toolVersion = "3.0.1"
+    sourceSets = [sourceSets.main]
+    reportsDir = file("$project.buildDir/reports/findbugs")
+    effort = "max"
+}
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+retrolambda {
+    jdk System.getenv("JAVA8_HOME")
+    oldJdk System.getenv("JAVA6_HOME")
+    javaVersion JavaVersion.VERSION_1_6
+}
